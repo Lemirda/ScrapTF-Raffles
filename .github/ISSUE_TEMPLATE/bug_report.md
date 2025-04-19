@@ -1,32 +1,38 @@
 ---
-name: "\U0001F41B Сообщение об ошибке"
-about: Создайте отчет, чтобы помочь нам улучшить проект
-title: "[БАГ] "
-labels: bug
+name: Bug report
+about: Create a report to help us improve
+title: ''
+labels: ''
 assignees: ''
 
 ---
 
-**📝 Описание ошибки**
-Четкое и краткое описание ошибки.
+**Describe the bug**
+A clear and concise description of what the bug is.
 
-**🔄 Как воспроизвести**
-Шаги для воспроизведения:
-1. Перейти к '...'
-2. Нажать на '....'
-3. Прокрутить до '....'
-4. Увидеть ошибку
+**To Reproduce**
+Steps to reproduce the behavior:
+1. Go to '...'
+2. Click on '....'
+3. Scroll down to '....'
+4. See error
 
-**✅ Ожидаемое поведение**
-Четкое и краткое описание того, что вы ожидали.
+**Expected behavior**
+A clear and concise description of what you expected to happen.
 
-**📷 Скриншоты**
-Если возможно, добавьте скриншоты для объяснения проблемы.
+**Screenshots**
+If applicable, add screenshots to help explain your problem.
 
-**💻 Окружение:**
- - ОС: [например, Windows 10]
- - Версия Python: [например, 3.8.0]
- - Версия Chrome: [например, 91.0.4472.124]
+**Desktop (please complete the following information):**
+ - OS: [e.g. iOS]
+ - Browser [e.g. chrome, safari]
+ - Version [e.g. 22]
 
-**📱 Дополнительная информация**
-Добавьте любую другую информацию о проблеме здесь.
+**Smartphone (please complete the following information):**
+ - Device: [e.g. iPhone6]
+ - OS: [e.g. iOS8.1]
+ - Browser [e.g. stock browser, safari]
+ - Version [e.g. 22]
+
+**Additional context**
+Add any other context about the problem here.
