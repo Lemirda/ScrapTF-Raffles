@@ -1,0 +1,209 @@
+/* Общие стили */
+body {
+    min-height: 100vh;
+    padding-top: 20px;
+    background-color: #f8f9fa;
+    font-family: 'Roboto Mono', monospace;
+}
+
+/* Применяем шрифт ко всем элементам */
+* {
+    font-family: 'Roboto Mono', monospace;
+}
+
+/* Контейнер */
+.container-fluid {
+    padding: 0;
+}
+
+/* Основной контент */
+.main-content {
+    padding: 20px;
+}
+
+/* Стили для консоли */
+.console-output {
+    height: 70vh;
+    overflow-y: auto;
+    padding: 15px;
+    font-family: 'Consolas', monospace;
+    font-size: 14px;
+    background-color: #1a1a1a;
+    color: #f0f0f0;
+}
+
+.console-output div {
+    margin-bottom: 3px;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
+/* Текстовые цвета */
+.text-info {
+    color: #6c9bd1 !important;
+}
+
+.text-success {
+    color: #6cca8e !important;
+}
+
+.text-warning {
+    color: #daa851 !important;
+}
+
+.text-danger {
+    color: #dc3545 !important;
+}
+
+/* Карточки статистики */
+.stats-card {
+    border-radius: 10px;
+    padding: 20px;
+    color: white;
+    display: flex;
+    align-items: center;
+    height: 150px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Таблица раздач */
+.table-dark {
+    background-color: #1a1a1a;
+    color: #f0f0f0;
+}
+
+.table-dark a {
+    color: #6c9bd1;
+}
+
+/* Адаптивность для мобильных устройств */
+@media (max-width: 768px) {
+    .main-content {
+        padding: 10px;
+    }
+    
+    .console-output {
+        height: 50vh;
+    }
+}
+
+/* Стили для графиков */
+.chart-container {
+    background-color: #2a2a2a;
+    border-radius: 10px;
+    padding: 15px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+}
+
+/* Анимация для спиннера обновления */
+.fa-spin {
+    animation: fa-spin 2s infinite linear;
+}
+
+@keyframes fa-spin {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(359deg);
+    }
+}
+
+/* Навигация */
+.navbar {
+    margin-bottom: 20px;
+}
+
+/* Карточки */
+.card {
+    margin-bottom: 20px;
+    border-radius: 10px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+}
+
+.card:hover {
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.card-header {
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+}
+
+/* Карточки с системными ресурсами */
+.system-stats-card {
+    transition: all 0.3s ease;
+}
+
+.system-stats-card.high-usage {
+    background-color: #fff0f0;
+}
+
+.stats-value {
+    font-size: 24px;
+    font-weight: bold;
+    margin-top: 5px;
+}
+
+.stats-label {
+    font-size: 14px;
+    color: #6c757d;
+}
+
+/* Индикаторы прогресса */
+.progress {
+    height: 8px;
+    margin-bottom: 10px;
+    border-radius: 4px;
+}
+
+/* Консоль / лог операций */
+.console {
+    height: 400px;
+    overflow-y: auto;
+    background-color: #212529;
+    color: #f8f9fa;
+    padding: 10px;
+    font-family: 'Roboto Mono', monospace;
+    border-radius: 5px;
+    line-height: 1.3;
+}
+
+.console pre {
+    margin: 0;
+    white-space: pre-wrap;
+    color: inherit;
+}
+
+/* График */
+#resourceChart {
+    width: 100%;
+    height: 300px;
+}
+
+/* Анимации при обновлении данных */
+@keyframes highlight {
+    0% { background-color: rgba(255, 243, 205, 0.5); }
+    100% { background-color: transparent; }
+}
+
+.highlight {
+    animation: highlight 2s ease;
+}
+
+/* Адаптивность для мобильных устройств */
+@media (max-width: 768px) {
+    .stats-value {
+        font-size: 20px;
+    }
+    
+    .console {
+        height: 300px;
+    }
+    
+    #resourceChart {
+        height: 250px;
+    }
+} 
