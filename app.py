@@ -235,7 +235,7 @@ if __name__ == '__main__':
     browser_thread.start()
     
     try:
-        socketio.run(app, debug=False, host='0.0.0.0', port=8000)
+        socketio.run(app, debug=False, host='0.0.0.0', port=8000, allow_unsafe_werkzeug=True)
     finally:
         stop_main_flag.set()
 

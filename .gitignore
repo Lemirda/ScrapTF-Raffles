@@ -5,3 +5,8 @@ __pycache__/
 
 # SQLite database
 raffles.db
+
+# PyInstaller build directories
+dist/
+build/
+*.spec
