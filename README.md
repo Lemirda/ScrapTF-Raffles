@@ -2,6 +2,8 @@
 
 <div align="center">
 
+<img src="https://github.com/user-attachments/assets/123c43c5-0707-4972-bd6a-48d01c103eb1" alt="ScrapTF Raffles Bot Screenshot" width="800"/>
+
 ![Python Version](https://img.shields.io/badge/Python-3.6%2B-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Status](https://img.shields.io/badge/status-active-success)
