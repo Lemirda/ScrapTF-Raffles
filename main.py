@@ -8,6 +8,7 @@ async def collect_raffles_from_page(tab, db):
     """Собирает раздачи с текущей страницы"""
     try:
         await tab.wait_for('#raffles-list', timeout=30)
+        await asyncio.sleep(random.uniform(5.0, 10.0))
         
         raffle_links = await tab.evaluate('''
             Array.from(document.querySelectorAll('.panel-raffle .panel-heading a'))
@@ -60,17 +61,19 @@ async def main():
             print("\n=== Новая итерация сканирования ===")
             print(f"Статистика перед сканированием: Всего раздач: {stats_before['total']}, Необработанных: {stats_before['unprocessed']}, Обработанных: {stats_before['processed']}")
 
-            # Собираем раздачи с /raffles/ending
-            print("\nСканируем раздачи, которые скоро закончатся...")
-            tab = await browser.get("https://scrap.tf/raffles/ending")
-            ending_new, ending_existing = await collect_raffles_from_page(tab, db)
-            print(f"С ending: {ending_new} новых раздач, {ending_existing} существующих")
-
             # Собираем раздачи с /raffles
             print("\nСканируем все раздачи...")
             tab = await browser.get("https://scrap.tf/raffles")
+            await asyncio.sleep(random.uniform(5.0, 10.0))
             all_new, all_existing = await collect_raffles_from_page(tab, db)
             print(f"С основной страницы: {all_new} новых раздач, {all_existing} существующих")
+
+            # Собираем раздачи с /raffles/ending
+            print("\nСканируем раздачи, которые скоро закончатся...")
+            tab = await browser.get("https://scrap.tf/raffles/ending")
+            await asyncio.sleep(random.uniform(5.0, 10.0))
+            ending_new, ending_existing = await collect_raffles_from_page(tab, db)
+            print(f"С ending: {ending_new} новых раздач, {ending_existing} существующих")
 
             total_new = ending_new + all_new
             total_existing = ending_existing + all_existing
@@ -144,7 +147,7 @@ async def process_unprocessed_raffles(browser, db):
 
         try:
             tab = await browser.get(url)
-            await tab.sleep(random.uniform(10.0, 15.0))
+            await asyncio.sleep(random.uniform(5.0, 10.0))
 
             try:
                 ended_element = await tab.wait_for('.raffle-row-full-width', timeout=5)
@@ -183,7 +186,7 @@ async def process_unprocessed_raffles(browser, db):
                         if is_visible:
                             print("Найдена кнопка 'Enter Raffle'. Нажимаем...")
                             await enter_button.click()
-                            await tab.sleep(random.uniform(10.0, 15.0))
+                            await asyncio.sleep(random.uniform(5.0, 10.0))
 
                             try:
                                 leave_button = await tab.wait_for('button.btn-danger.btn-lg[onclick*="LeaveRaffle"]', timeout=30)
@@ -202,7 +205,7 @@ async def process_unprocessed_raffles(browser, db):
                     print("Раздача недоступна (кнопка Enter не найдена).")
                     db.delete_raffle(url)
 
-            await tab.sleep(random.uniform(3.0, 5.0))
+            await asyncio.sleep(random.uniform(3.0, 5.0))
 
         except Exception as e:
             print(f"Ошибка при обработке раздачи {url}: {str(e)}")
