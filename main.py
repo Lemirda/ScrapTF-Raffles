@@ -4,6 +4,48 @@ import traceback
 from db_manager import RaffleDatabase
 import asyncio
 
+async def collect_raffles_from_page(tab, db):
+    """Собирает раздачи с текущей страницы"""
+    try:
+        await tab.wait_for('#raffles-list', timeout=30)
+        
+        raffle_links = await tab.evaluate('''
+            Array.from(document.querySelectorAll('.panel-raffle .panel-heading a'))
+                .map(a => a.href)
+                .filter(href => href && href.includes('/raffles/'));
+        ''')
+
+        if not raffle_links:
+            print("Не удалось найти ни одной ссылки на раздачу!")
+            return 0, 0
+
+        new_raffles = 0
+        existing_raffles = 0
+
+        for link in raffle_links:
+            if isinstance(link, dict) and 'value' in link:
+                link = link['value']
+
+            if not link.startswith('https://scrap.tf'):
+                link = f"https://scrap.tf{link}"
+
+            try:
+                if not db.is_raffle_exists(link):
+                    if db.add_raffle(link):
+                        new_raffles += 1
+                else:
+                    existing_raffles += 1
+            except Exception as e:
+                print(f"Исключение при добавлении в базу данных: {str(e)}")
+                traceback.print_exc()
+
+        return new_raffles, existing_raffles
+
+    except Exception as e:
+        print(f"Ошибка при сборе раздач: {str(e)}")
+        traceback.print_exc()
+        return 0, 0
+
 async def main():
     db = RaffleDatabase()
 
@@ -15,81 +57,24 @@ async def main():
     try:
         while True:
             stats_before = db.get_stats()
-
             print("\n=== Новая итерация сканирования ===")
             print(f"Статистика перед сканированием: Всего раздач: {stats_before['total']}, Необработанных: {stats_before['unprocessed']}, Обработанных: {stats_before['processed']}")
 
+            # Собираем раздачи с /raffles/ending
+            print("\nСканируем раздачи, которые скоро закончатся...")
             tab = await browser.get("https://scrap.tf/raffles/ending")
+            ending_new, ending_existing = await collect_raffles_from_page(tab, db)
+            print(f"С ending: {ending_new} новых раздач, {ending_existing} существующих")
 
-            try:
-                await tab.wait_for('#raffles-list', timeout=30)
-            except Exception as e:
-                print(f"Не удалось дождаться загрузки контейнера с раздачами: {e}")
-                continue
+            # Собираем раздачи с /raffles
+            print("\nСканируем все раздачи...")
+            tab = await browser.get("https://scrap.tf/raffles")
+            all_new, all_existing = await collect_raffles_from_page(tab, db)
+            print(f"С основной страницы: {all_new} новых раздач, {all_existing} существующих")
 
-            try:
-                await tab.wait_for('.panel-body.raffle-pagination-done', timeout=60)
-
-                start_time = asyncio.get_event_loop().time()
-
-                while (asyncio.get_event_loop().time() - start_time) < 20:
-                    try:
-                        # Используем JavaScript для скроллинга т.к вариант от nodriver херовый
-                        await tab.evaluate(f'''
-                            window.scrollBy({{
-                                top: {random.randint(500, 800)},
-                                behavior: 'smooth'
-                            }});
-                        ''')
-                        await tab.sleep(random.uniform(1.0, 2.0))
-                    except Exception as e:
-                        print(f"Ошибка при скроллинге: {str(e)}")
-                        await tab.sleep(1.0)
-
-            except Exception as scroll_error:
-                print(f"Ошибка при скроллинге: {str(scroll_error)}")
-
-            try:
-                raffle_links = await tab.evaluate('''
-                    Array.from(document.querySelectorAll('.panel-raffle .panel-heading a'))
-                        .map(a => a.href)
-                        .filter(href => href && href.includes('/raffles/'));
-                ''')
-
-                if raffle_links:
-                    processed_links = []
-
-                    for link in raffle_links:
-                        if isinstance(link, dict) and 'value' in link:
-                            link = link['value']
-
-                        if not link.startswith('https://scrap.tf'):
-                            link = f"https://scrap.tf{link}"
-
-                        processed_links.append(link)
-
-                    new_raffles = 0
-                    existing_raffles = 0
-
-                    for url in processed_links:
-                        try:
-                            if not db.is_raffle_exists(url):
-                                if db.add_raffle(url):
-                                    new_raffles += 1
-                            else:
-                                existing_raffles += 1
-                        except Exception as e:
-                            print(f"Исключение при добавлении в базу данных: {str(e)}")
-                            traceback.print_exc()
-
-                    print(f"\nОбработка завершена: {new_raffles} новых раздач добавлено, {existing_raffles} уже существовало в базе данных")
-                else:
-                    print("Не удалось найти ни одной ссылки на раздачу!")
-                    continue
-
-            except Exception as links_error:
-                print(f"Ошибка при получении ссылок: {str(links_error)}")
-                traceback.print_exc()
+            total_new = ending_new + all_new
+            total_existing = ending_existing + all_existing
+            print(f"\nВсего собрано: {total_new} новых раздач, {total_existing} уже существующих")
 
             stats_after = db.get_stats()
 
