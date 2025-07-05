@@ -1,9 +1,19 @@
 import sqlite3
+import os
+import sys
 
 class RaffleDatabase:
     def __init__(self, db_file="raffles.db"):
         """Инициализация базы данных."""
-        self.db_file = db_file
+        # Определяем путь к базе данных в директории с исполняемым файлом
+        if getattr(sys, 'frozen', False):
+            # Если приложение запущено как исполняемый файл (exe)
+            application_path = os.path.dirname(sys.executable)
+        else:
+            # Если приложение запущено как скрипт
+            application_path = os.path.dirname(os.path.abspath(__file__))
+        
+        self.db_file = os.path.join(application_path, db_file)
         self.conn = None
         self.create_tables()
 

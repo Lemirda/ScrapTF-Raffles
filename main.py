@@ -3,6 +3,8 @@ import nodriver as uc
 import traceback
 from db_manager import RaffleDatabase
 import asyncio
+import os
+import login
 
 async def collect_raffles_from_page(tab, db):
     """Собирает раздачи с текущей страницы"""
@@ -48,14 +50,30 @@ async def collect_raffles_from_page(tab, db):
         return 0, 0
 
 async def main():
+    # Проверяем авторизацию перед запуском
+    print("=== Проверка авторизации ===")
+    login_result, profile_path = await login.check_and_login()
+    
+    if not login_result:
+        print("Ошибка авторизации. Работа программы остановлена.")
+        return
+    
+    print("=== Авторизация успешна, запускаем основной скрипт ===")
+    
     db = RaffleDatabase()
 
     browser = await uc.start(
         headless=False,
-        user_data_dir="C:\\Users\\User\\AppData\\Local\\Google\\Chrome\\User Data"
+        user_data_dir=profile_path
     )
 
     try:
+        print("\n=== Запускаем браузер с локальным профилем ===")
+        print(f"Путь к профилю: {profile_path}")
+
+        tab = await browser.get("https://scrap.tf/")
+        await asyncio.sleep(5)
+
         while True:
             stats_before = db.get_stats()
             print("\n=== Новая итерация сканирования ===")
@@ -95,23 +113,8 @@ async def main():
             wait_seconds = int(wait_minutes * 60)
             print(f"Следующая проверка через {wait_minutes:.1f} минут")
 
-            #print("Закрываем браузер для экономии ресурсов")
-            #browser.stop()
-
             print(f"Ожидаем {wait_minutes:.1f} минут перед следующим сканированием...")
             await asyncio.sleep(wait_seconds)
-
-            #print("Перезапускаем браузер")
-
-            #await asyncio.sleep(5)
-            
-            #browser = await uc.start(
-                #=False,
-                #user_data_dir="C:\\Users\\User\\AppData\\Local\\Google\\Chrome\\User Data",
-                #lang="en-US"
-            #)
-
-            #await asyncio.sleep(3)
 
     except Exception as e:
         print(f"Произошла ошибка: {str(e)}")

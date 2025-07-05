@@ -1,3 +1,4 @@
 nodriver
-flask
-flask-socketio
+PyQt6
+PyQt6-Charts
+psutil
