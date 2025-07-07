@@ -8,8 +8,8 @@ from collections import deque
 import psutil
 
 from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QTextEdit, QProgressBar, QSplitter, QFrame, QSizePolicy
-from PyQt6.QtCore import Qt, pyqtSignal, QObject, QThread
-from PyQt6.QtGui import QIcon, QFont, QPalette, QPainter, QColor, QBrush, QPen
+from PyQt6.QtCore import Qt, pyqtSignal, QObject, QThread, QEvent
+from PyQt6.QtGui import QIcon, QFont, QPalette, QPainter, QColor, QBrush, QPen, QGuiApplication
 from PyQt6.QtCharts import QChart, QChartView, QValueAxis, QSplineSeries
 
 from db_manager import RaffleDatabase
@@ -293,12 +293,73 @@ class ModernConsole(QTextEdit):
         super().__init__(parent)
         self.setReadOnly(True)
         self.setFont(QFont("Consolas", 10))
+        
+        # Настройка полосы прокрутки
+        self.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOn)
+        self.auto_scroll = True
+        
+        # Базовый стиль консоли
         self.setStyleSheet(f"""
-            background-color: {COLORS['card_bg'].darker(120).name()};
-            color: {COLORS['text'].name()};
-            border-radius: 10px;
-            padding: 10px;
+            QTextEdit {{
+                background-color: {COLORS['card_bg'].darker(120).name()};
+                color: {COLORS['text'].name()};
+                border-radius: 10px;
+                padding: 10px;
+                border: none;
+            }}
         """)
+        
+        # Отдельно настраиваем стиль для полосы прокрутки
+        scrollbar_style = f"""
+            QScrollBar:vertical {{
+                background-color: {COLORS['card_bg'].darker(120).name()};
+                width: 14px;
+                margin: 0px;
+                border: none;
+            }}
+            QScrollBar::handle:vertical {{
+                background-color: {COLORS['card_bg'].lighter(150).name()};
+                border-radius: 6px;
+                min-height: 20px;
+                margin: 2px;
+            }}
+            QScrollBar::handle:vertical:hover {{
+                background-color: {COLORS['accent'].name()};
+            }}
+            QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {{
+                height: 0px;
+                background: none;
+            }}
+            QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {{
+                background: none;
+            }}
+        """
+        
+        self.verticalScrollBar().setStyleSheet(scrollbar_style)
+    
+    def append(self, text):
+        """Добавление текста с проверкой положения скроллбара"""
+        # Проверяем, находится ли скроллбар внизу перед добавлением текста
+        scrollbar = self.verticalScrollBar()
+        at_bottom = scrollbar.value() >= scrollbar.maximum() - 10
+        
+        # Добавляем текст
+        super().append(text)
+        
+        # Обновляем события, чтобы получить актуальное значение максимума скроллбара
+        QApplication.processEvents()
+        
+        # Если скроллбар был внизу, прокручиваем вниз
+        if at_bottom and self.auto_scroll:
+            scrollbar.setValue(scrollbar.maximum())
+    
+    def showEvent(self, event):
+        """Обработка события показа"""
+        super().showEvent(event)
+        if self.auto_scroll:
+            QApplication.processEvents()
+            scrollbar = self.verticalScrollBar()
+            scrollbar.setValue(scrollbar.maximum())
 
 class ScrapTFApp(QMainWindow):
     def __init__(self):
@@ -309,13 +370,17 @@ class ScrapTFApp(QMainWindow):
         self.setMinimumSize(1200, 800)
         
         # Загружаем иконку
-        icon_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "icon.ico")
-        if getattr(sys, 'frozen', False):
-            # Если приложение запущено как исполняемый файл (exe)
-            icon_path = os.path.join(os.path.dirname(sys.executable), "icon.ico")
-            
+        # Сначала пробуем найти иконку в той же папке, где и исполняемый файл
+        icon_path = os.path.join(os.path.dirname(sys.executable if getattr(sys, 'frozen', False) else __file__), "icon.ico")
+        
+        # Если файл не найден, ищем в родительской директории (для случая запуска из подпапки)
+        if not os.path.exists(icon_path):
+            icon_path = os.path.join(os.path.dirname(os.path.dirname(sys.executable if getattr(sys, 'frozen', False) else __file__)), "icon.ico")
+        
         if os.path.exists(icon_path):
             self.setWindowIcon(QIcon(icon_path))
+        else:
+            print("[Система] Иконка приложения не найдена:", icon_path)
         
         # Инициализация переменных
         self.cpu_data = deque(maxlen=30)
@@ -493,7 +558,6 @@ class ScrapTFApp(QMainWindow):
         
         # Добавляем текст с форматированием
         self.console.append(f'<span style="color:{color};">{text}</span>')
-        self.console.ensureCursorVisible()
     
     def update_system_stats(self, stats):
         """Обновление статистики системных ресурсов"""
@@ -566,8 +630,37 @@ class ScrapTFApp(QMainWindow):
         
         super().closeEvent(event)
 
+    def showEvent(self, event):
+        """Обработка события показа окна"""
+        super().showEvent(event)
+        # Обновляем интерфейс при показе окна
+        QApplication.processEvents()
+        
+        # Обновляем скроллбар консоли
+        if hasattr(self, 'console'):
+            scrollbar = self.console.verticalScrollBar()
+            if self.console.auto_scroll:
+                scrollbar.setValue(scrollbar.maximum())
+    
+    def changeEvent(self, event):
+        """Обработка изменения состояния окна"""
+        if event.type() == QEvent.Type.WindowStateChange:
+            if self.windowState() & Qt.WindowState.WindowMinimized:
+                pass
+            elif event.oldState() & Qt.WindowState.WindowMinimized:
+                # Окно восстановлено из свёрнутого состояния
+                QApplication.processEvents()
+                # Обновляем скроллбар консоли
+                if hasattr(self, 'console') and self.console.auto_scroll:
+                    scrollbar = self.console.verticalScrollBar()
+                    scrollbar.setValue(scrollbar.maximum())
+        
+        super().changeEvent(event)
+
 if __name__ == "__main__":
+    # Создаем экземпляр QApplication
     app = QApplication(sys.argv)
+    
     window = ScrapTFApp()
     window.show()
     sys.exit(app.exec()) 

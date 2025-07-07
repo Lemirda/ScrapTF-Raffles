@@ -1,10 +1,10 @@
 import random
 import nodriver as uc
 import traceback
-from db_manager import RaffleDatabase
 import asyncio
-import os
 import login
+
+from db_manager import RaffleDatabase
 
 async def collect_raffles_from_page(tab, db):
     """Собирает раздачи с текущей страницы"""
