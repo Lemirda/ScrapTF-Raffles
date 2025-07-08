@@ -2,13 +2,7 @@
 
 <div align="center">
 
-<img src="https://github.com/user-attachments/assets/123c43c5-0707-4972-bd6a-48d01c103eb1" alt="ScrapTF Raffles Bot Screenshot" width="800"/>
-
-[![Python Version](https://img.shields.io/badge/Python-3.6%2B-blue)](https://www.python.org/)
-[![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
-[![Status](https://img.shields.io/badge/status-active-success)](https://github.com/Lemirda/ScrapTF-Raffles/releases)
-[![Update](https://img.shields.io/badge/Последнее_Обновление-5_Июля_2025-purple)](https://github.com/Lemirda/ScrapTF-Raffles/releases)
-[![Защита](https://img.shields.io/badge/Статус-Undetected-brightgreen)](https://github.com/Lemirda/ScrapTF-Raffles/releases)
+<img src="https://github.com/user-attachments/assets/47af9449-9afe-45e5-9459-c7b111681c7c" alt="ScrapTF Raffles Bot Screenshot" width="800"/>
 
 </div>
 
