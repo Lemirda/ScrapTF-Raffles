@@ -2,7 +2,7 @@
 name: "\U0001F4A1 Предложение улучшения"
 about: Предложите идею для проекта
 title: "[ФИЧА] "
-labels: enhancement
+labels: ''
 assignees: ''
 
 ---
