@@ -1,18 +1,18 @@
+"""Модуль для управления базой данных раздач и хранения связанной информации"""
 import sqlite3
 import os
 import sys
+
 
 class RaffleDatabase:
     def __init__(self, db_file="raffles.db"):
         """Инициализация базы данных."""
         # Определяем путь к базе данных в директории с исполняемым файлом
         if getattr(sys, 'frozen', False):
-            # Если приложение запущено как исполняемый файл (exe)
             application_path = os.path.dirname(sys.executable)
         else:
-            # Если приложение запущено как скрипт
             application_path = os.path.dirname(os.path.abspath(__file__))
-        
+
         self.db_file = os.path.join(application_path, db_file)
         self.conn = None
         self.create_tables()
@@ -30,8 +30,9 @@ class RaffleDatabase:
         )
         ''')
 
-        cursor.execute('CREATE INDEX IF NOT EXISTS idx_raffles_url ON raffles(url)')
-        
+        cursor.execute(
+            'CREATE INDEX IF NOT EXISTS idx_raffles_url ON raffles(url)')
+
         conn.commit()
 
     def connect(self):
@@ -40,7 +41,7 @@ class RaffleDatabase:
             self.conn = sqlite3.connect(self.db_file)
             self.conn.row_factory = sqlite3.Row
         return self.conn
-    
+
     def close(self):
         """Закрытие соединения с базой данных."""
         if self.conn:
@@ -74,7 +75,7 @@ class RaffleDatabase:
         """Удаляет раздачу из базы данных."""
         conn = self.connect()
         cursor = conn.cursor()
-        
+
         try:
             cursor.execute('DELETE FROM raffles WHERE url = ?', (url,))
             conn.commit()
@@ -87,7 +88,7 @@ class RaffleDatabase:
         """Проверка, существует ли раздача в базе данных."""
         conn = self.connect()
         cursor = conn.cursor()
-        
+
         cursor.execute('SELECT 1 FROM raffles WHERE url = ?', (url,))
         return cursor.fetchone() is not None
 
@@ -119,26 +120,26 @@ class RaffleDatabase:
             )
         else:
             cursor.execute('SELECT * FROM raffles WHERE processed = 0')
-            
+
         return cursor.fetchall()
-    
+
     def get_stats(self):
         """Получение статистики по раздачам."""
         conn = self.connect()
         cursor = conn.cursor()
-        
+
         stats = {}
-        
+
         # Общее количество раздач
         cursor.execute('SELECT COUNT(*) FROM raffles')
         stats['total'] = cursor.fetchone()[0]
-        
+
         # Количество необработанных раздач
         cursor.execute('SELECT COUNT(*) FROM raffles WHERE processed = 0')
         stats['unprocessed'] = cursor.fetchone()[0]
-        
+
         # Количество обработанных раздач
         cursor.execute('SELECT COUNT(*) FROM raffles WHERE processed = 1')
         stats['processed'] = cursor.fetchone()[0]
-        
+
         return stats

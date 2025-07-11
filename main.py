@@ -6,12 +6,13 @@ import login
 
 from db_manager import RaffleDatabase
 
+
 async def collect_raffles_from_page(tab, db):
     """Собирает раздачи с текущей страницы"""
     try:
         await tab.wait_for('#raffles-list', timeout=30)
         await asyncio.sleep(random.uniform(5.0, 10.0))
-        
+
         raffle_links = await tab.evaluate('''
             Array.from(document.querySelectorAll('.panel-raffle .panel-heading a'))
                 .map(a => a.href)
@@ -49,17 +50,18 @@ async def collect_raffles_from_page(tab, db):
         traceback.print_exc()
         return 0, 0
 
+
 async def main():
     # Проверяем авторизацию перед запуском
     print("=== Проверка авторизации ===")
     login_result, profile_path = await login.check_and_login()
-    
+
     if not login_result:
         print("Ошибка авторизации. Работа программы остановлена.")
         return
-    
+
     print("=== Авторизация успешна, запускаем основной скрипт ===")
-    
+
     db = RaffleDatabase()
 
     browser = await uc.start(
@@ -77,25 +79,29 @@ async def main():
         while True:
             stats_before = db.get_stats()
             print("\n=== Новая итерация сканирования ===")
-            print(f"Статистика перед сканированием: Всего раздач: {stats_before['total']}, Необработанных: {stats_before['unprocessed']}, Обработанных: {stats_before['processed']}")
+            print(
+                f"Статистика перед сканированием: Всего раздач: {stats_before['total']}, Необработанных: {stats_before['unprocessed']}, Обработанных: {stats_before['processed']}")
 
             # Собираем раздачи с /raffles
             print("\nСканируем все раздачи...")
             tab = await browser.get("https://scrap.tf/raffles")
             await asyncio.sleep(random.uniform(5.0, 10.0))
             all_new, all_existing = await collect_raffles_from_page(tab, db)
-            print(f"С основной страницы: {all_new} новых раздач, {all_existing} существующих")
+            print(
+                f"С основной страницы: {all_new} новых раздач, {all_existing} существующих")
 
             # Собираем раздачи с /raffles/ending
             print("\nСканируем раздачи, которые скоро закончатся...")
             tab = await browser.get("https://scrap.tf/raffles/ending")
             await asyncio.sleep(random.uniform(5.0, 10.0))
             ending_new, ending_existing = await collect_raffles_from_page(tab, db)
-            print(f"С ending: {ending_new} новых раздач, {ending_existing} существующих")
+            print(
+                f"С ending: {ending_new} новых раздач, {ending_existing} существующих")
 
             total_new = ending_new + all_new
             total_existing = ending_existing + all_existing
-            print(f"\nВсего собрано: {total_new} новых раздач, {total_existing} уже существующих")
+            print(
+                f"\nВсего собрано: {total_new} новых раздач, {total_existing} уже существующих")
 
             stats_after = db.get_stats()
 
@@ -107,13 +113,15 @@ async def main():
             print(f"Всего раздач в базе: {stats_final['total']}")
             print(f"Необработанных раздач: {stats_final['unprocessed']}")
             print(f"Обработанных раздач: {stats_final['processed']}")
-            print(f"Обработано за этот запуск: {stats_final['processed'] - stats_after['processed']}")
+            print(
+                f"Обработано за этот запуск: {stats_final['processed'] - stats_after['processed']}")
 
             wait_minutes = random.uniform(5, 20)
             wait_seconds = int(wait_minutes * 60)
             print(f"Следующая проверка через {wait_minutes:.1f} минут")
 
-            print(f"Ожидаем {wait_minutes:.1f} минут перед следующим сканированием...")
+            print(
+                f"Ожидаем {wait_minutes:.1f} минут перед следующим сканированием...")
             await asyncio.sleep(wait_seconds)
 
     except Exception as e:
@@ -132,6 +140,7 @@ async def main():
         db.close()
         print("База данных закрыта")
 
+
 async def process_unprocessed_raffles(browser, db):
     unprocessed_raffles = db.get_unprocessed_raffles()
 
@@ -139,7 +148,8 @@ async def process_unprocessed_raffles(browser, db):
         print("Нет необработанных раздач для участия.")
         return
 
-    print(f"Найдено {len(unprocessed_raffles)} необработанных раздач для участия.")
+    print(
+        f"Найдено {len(unprocessed_raffles)} необработанных раздач для участия.")
 
     processed_count = 0
     failed_count = 0
@@ -160,7 +170,7 @@ async def process_unprocessed_raffles(browser, db):
                     db.delete_raffle(url)
                     continue
             except:
-                pass # Элемент не найден, значит раздача активна
+                pass  # Элемент не найден, значит раздача активна
 
             try:
                 # Проверяем, есть ли кнопка Leave
@@ -175,7 +185,7 @@ async def process_unprocessed_raffles(browser, db):
                 try:
                     # Проверяем кнопку Enter
                     enter_button = await tab.wait_for('button.btn-info.btn-lg[onclick*="EnterRaffle"]:not([id="raffle-enter"])', timeout=5)
-                    
+
                     if enter_button:
                         is_visible = await tab.evaluate('''
                             (function() {
@@ -199,11 +209,13 @@ async def process_unprocessed_raffles(browser, db):
                                     db.mark_as_processed(url)
                                     processed_count += 1
                             except:
-                                print("Не удалось дождаться появления кнопки 'Leave Raffle'.")
+                                print(
+                                    "Не удалось дождаться появления кнопки 'Leave Raffle'.")
                                 failed_count += 1
                         else:
-                            print("Раздача недоступна (кнопка Enter не видима).") # Такого не может произойти
-                            db.delete_raffle(url) # Такого не может произойти
+                            # Такого не может произойти
+                            print("Раздача недоступна (кнопка Enter не видима).")
+                            db.delete_raffle(url)  # Такого не может произойти
                 except:
                     print("Раздача недоступна (кнопка Enter не найдена).")
                     db.delete_raffle(url)
@@ -215,7 +227,8 @@ async def process_unprocessed_raffles(browser, db):
             traceback.print_exc()
             failed_count += 1
 
-    print(f"\nОбработка раздач завершена: успешно обработано {processed_count}, не удалось обработать {failed_count}")
+    print(
+        f"\nОбработка раздач завершена: успешно обработано {processed_count}, не удалось обработать {failed_count}")
 
 if __name__ == "__main__":
     uc.loop().run_until_complete(main())
