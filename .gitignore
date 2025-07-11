@@ -6,3 +6,4 @@ dist/
 build/
 *.spec
 browser_profile/
+.venv

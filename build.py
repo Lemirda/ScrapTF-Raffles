@@ -1,3 +1,4 @@
+"""Сборка кода в exe файл"""
 import os
 import shutil
 import PyQt6
@@ -25,13 +26,17 @@ def build_exe():
     desktop_app_path = os.path.join(os.path.dirname(
         os.path.abspath(__file__)), "desktop_app.py")
 
+    resources_path = os.path.join(os.path.dirname(PyQt6.__file__), 'Qt6', 'resources')
+    resources_dest = "PyQt6/Qt6/resources"
+
     pyinstaller_args = [
         "--onefile",
         "--windowed",
         "--name", "ScrapTF_Raffles",
         "--icon", "icon.ico",
         "--hidden-import", "PyQt6.QtChart",
-        f"--add-data={os.path.join(os.path.dirname(PyQt6.__file__), 'Qt6', 'resources')}{os.pathsep}PyQt6/Qt6/resources",
+        "--add-data",
+        f"{resources_path}{os.pathsep}{resources_dest}",
         desktop_app_path
     ]
 

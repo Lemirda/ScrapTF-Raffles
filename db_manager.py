@@ -5,9 +5,11 @@ import sys
 
 
 class RaffleDatabase:
+    """Класс для управления базой данных раздач."""
+
     def __init__(self, db_file="raffles.db"):
         """Инициализация базы данных."""
-        # Определяем путь к базе данных в директории с исполняемым файлом
+
         if getattr(sys, 'frozen', False):
             application_path = os.path.dirname(sys.executable)
         else:
@@ -67,8 +69,8 @@ class RaffleDatabase:
         except sqlite3.Error as e:
             print(f"Ошибка SQLite при добавлении раздачи: {e}")
             return False
-        except Exception as e:
-            print(f"Неожиданная ошибка при добавлении раздачи: {e}")
+        except (TypeError, ValueError) as e:
+            print(f"Ошибка в данных при добавлении раздачи: {e}")
             return False
 
     def delete_raffle(self, url):

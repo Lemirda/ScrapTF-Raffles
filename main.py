@@ -52,7 +52,6 @@ async def collect_raffles_from_page(tab, db):
 
 
 async def main():
-    # Проверяем авторизацию перед запуском
     print("=== Проверка авторизации ===")
     login_result, profile_path = await login.check_and_login()
 
@@ -163,62 +162,24 @@ async def process_unprocessed_raffles(browser, db):
             await asyncio.sleep(random.uniform(5.0, 10.0))
 
             try:
-                ended_element = await tab.wait_for('.raffle-row-full-width', timeout=5)
+                # Проверяем кнопку Enter
+                enter_button = await tab.wait_for('button.btn-info.btn-lg[onclick*="EnterRaffle"]:not([id="raffle-enter"])', timeout=5)
+                print("Найдена кнопка 'Enter Raffle'. Нажимаем...")
+                await enter_button.click()
+                await asyncio.sleep(random.uniform(5.0, 10.0))
 
-                if ended_element:
-                    print("Раздача уже закончилась. Удаляем из базы данных.")
-                    db.delete_raffle(url)
-                    continue
-            except:
-                pass  # Элемент не найден, значит раздача активна
-
-            try:
-                # Проверяем, есть ли кнопка Leave
-                leave_button = await tab.wait_for('button.btn-danger.btn-lg[onclick*="LeaveRaffle"]', timeout=5)
-
-                if leave_button:
-                    print("Уже участвуем в этой раздаче.")
+                try:
+                    # Проверяем успешность вступления
+                    await tab.wait_for('button.btn-danger.btn-lg[onclick*="LeaveRaffle"]', timeout=30)
+                    print("Успешно вступили в раздачу!")
                     db.mark_as_processed(url)
                     processed_count += 1
-                    continue
-            except:
-                try:
-                    # Проверяем кнопку Enter
-                    enter_button = await tab.wait_for('button.btn-info.btn-lg[onclick*="EnterRaffle"]:not([id="raffle-enter"])', timeout=5)
-
-                    if enter_button:
-                        is_visible = await tab.evaluate('''
-                            (function() {
-                                const button = document.querySelector('button.btn-info.btn-lg[onclick*="EnterRaffle"]:not([id="raffle-enter"])');
-                                if (!button) return false;
-                                const style = window.getComputedStyle(button);
-                                return style.display !== 'none' && style.visibility !== 'hidden';
-                            })();
-                        ''')
-
-                        if is_visible:
-                            print("Найдена кнопка 'Enter Raffle'. Нажимаем...")
-                            await enter_button.click()
-                            await asyncio.sleep(random.uniform(5.0, 10.0))
-
-                            try:
-                                leave_button = await tab.wait_for('button.btn-danger.btn-lg[onclick*="LeaveRaffle"]', timeout=30)
-
-                                if leave_button:
-                                    print("Успешно вступили в раздачу!")
-                                    db.mark_as_processed(url)
-                                    processed_count += 1
-                            except:
-                                print(
-                                    "Не удалось дождаться появления кнопки 'Leave Raffle'.")
-                                failed_count += 1
-                        else:
-                            # Такого не может произойти
-                            print("Раздача недоступна (кнопка Enter не видима).")
-                            db.delete_raffle(url)  # Такого не может произойти
                 except:
-                    print("Раздача недоступна (кнопка Enter не найдена).")
-                    db.delete_raffle(url)
+                    print("Не удалось дождаться появления кнопки 'Leave Raffle'.")
+                    failed_count += 1
+            except:
+                print("Кнопка Enter не найдена. Удаляем раздачу из базы данных.")
+                db.delete_raffle(url)
 
             await asyncio.sleep(random.uniform(3.0, 5.0))
 
